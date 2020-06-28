@@ -1,0 +1,12 @@
+{
+  "name": "voult-project",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "server": "node ./config/init.js"
+  },
+  "dependencies": {
+    "node-vault": "^0.9.18"
+  }
+}
