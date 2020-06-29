@@ -1,4 +1,4 @@
- base image
+# base image
 FROM alpine:3.7
 
 # set vault version
@@ -28,7 +28,6 @@ ENV PATH="PATH=$PATH:$PWD/vault"
 COPY ./config/vault-config.json /vault/config/vault-config.json
 COPY ./fullchain1.pem /vault/keys/public.pem
 COPY ./privkey1.pem /vault/keys/private.pem
-
 
 # expose port 8200
 EXPOSE 8200
