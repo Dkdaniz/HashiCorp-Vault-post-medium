@@ -4,15 +4,15 @@ services:
 
   vault:
     build:
-      context: ./vault
+      context: ./docker/vault
       dockerfile: Dockerfile
     ports:
       - 8200:8200
     volumes:
-      - ./vault/config:/vault/config
-      - ./vault/policies:/vault/policies
-      - ./vault/data:/vault/data
-      - ./vault/logs:/vault/logs
+      - ./docker/vault/config:/vault/config
+      - ./docker/vault/policies:/vault/policies
+      - ./docker/vault/data:/vault/data
+      - ./docker/vault/logs:/vault/logs
     environment:
       - VAULT_ADDR=http://127.0.0.1:8200
     command: server -config=/vault/config/vault-config.json
@@ -23,21 +23,21 @@ services:
 
   consul:
     build:
-      context: ./consul
+      context: ./docker/consul
       dockerfile: Dockerfile
     ports:
       - 8500:8500
     command: agent -server -bind 0.0.0.0 -client 0.0.0.0 -bootstrap-expect 1 -config-file=/consul/config/config.json
     volumes:
-      - ./consul/config/consul-config.json:/consul/config/config.json
-      - ./consul/data:/consul/data
+      - ./docker/consul/config/consul-config.json:/consul/config/config.json
+      - ./docker/consul/data:/consul/data
 
   consul-worker:
     build:
-      context: ./consul
+      context: ./docker/consul
       dockerfile: Dockerfile
     command: agent -server -join consul -config-file=/consul/config/config.json
     volumes:
-      - ./consul/config/consul-config.json:/consul/config/config.json
+      - ./docker/consul/config/consul-config.json:/consul/config/config.json
     depends_on:
       - consul
