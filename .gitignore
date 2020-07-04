@@ -1,4 +1,6 @@
-vault/data/*
-vault/logs/*
-consul/data/*
+docker/vault/data/
+docker/vault/logs/
+docker/vault/policies/
+docker/consul/data/
 .DS_Store
+
