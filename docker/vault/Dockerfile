@@ -26,8 +26,8 @@ ENV PATH="PATH=$PATH:$PWD/vault"
 
 # add the config file
 COPY ./config/vault-config.json /vault/config/vault-config.json
-COPY ./fullchain1.pem /vault/keys/public.pem
-COPY ./privkey1.pem /vault/keys/private.pem
+COPY ./fullchain.pem /vault/keys/public.pem
+COPY ./privkey.pem /vault/keys/private.pem
 
 # expose port 8200
 EXPOSE 8200
