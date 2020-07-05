@@ -632,6 +632,7 @@ Agora iremos criar nosso arquivo de configuração, digite no console:
 ```bash
 mkdir config && cd config
 ```
+
 Dentro dessa pasta criamos um arquivo chamado ``consul-config.json`` com as seguintes configurações.
 
 ```json
