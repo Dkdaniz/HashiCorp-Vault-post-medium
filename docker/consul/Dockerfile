@@ -6,6 +6,7 @@ ENV CONSUL_VERSION 1.7.4
 
 # create a new directory
 RUN mkdir /consul
+RUN mkdir /consul/keys
 
 # download dependencies
 RUN apk --no-cache add \
@@ -24,9 +25,12 @@ ENV PATH="PATH=$PATH:$PWD/consul"
 
 # add the config file
 COPY ./config/consul-config.json /consul/config/config.json
+COPY ./fullchain.pem /consul/keys/public.pem
+COPY ./privkey.pem /consul/keys/private.pem
+COPY ./ca.pem /consul/keys/ca.pem
 
 # expose ports
-EXPOSE 8300 8400 8500 8600
+EXPOSE 8300 8400 8500 8501 8600
 
 # run consul
 ENTRYPOINT ["consul"]

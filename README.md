@@ -448,10 +448,201 @@ o console ira lhe retornar a mensagem:
 Mas agora sem o erro, pois quem esta deletando a chave é o usuario **ROOT** e nao o usuário **CLIENT** que possui politica de acesso.
 
 
-## DEPLOY 
+## VAMOS AO DEPLOY 
+
+Nosso deploy sera feito totalmente com o docker, pois essa e a forma mais eficiente de ser implementado na minha opinião.
+
+Bem escolham uma VPN ou Amazon ECS, irei utilizar uma VPN nesse exemplo, mas garanto que nao a curva de implantação nao possui muita diferença pois essa e a filosofia do Docker.
+
+Crie uma pasta no seu projeto chamada ``Docker`` e dentro dela uma pasta chamada ``vault``e outra chamada ``consul``, caso nao lembre, no console voce pode digitar:
+```
+mkdir docker && cd docker && mkdir vault && mkdir consul && cd vault
+```
+
+### Vault
+
+dentro da pasta vault vamos criar um arquivo chamado `Dockerfile` que sera responsável pela configuração do container ``vault``.
+
+neste arquivo voce ira colar as seguintes configurações:
+```dockerfile
+# base image
+FROM alpine:3.7
+
+# define a versão do vault
+ENV VAULT_VERSION 1.2.3
+
+# cria um novo repositório
+RUN mkdir /vault
+RUN mkdir /vault/keys
+
+# faz download da dependência
+RUN apk --no-cache add \
+      bash \
+      ca-certificates \
+      wget
+
+# faz download da imagem do vault
+RUN wget --quiet --output-document=/tmp/vault.zip https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_amd64.zip && \
+    unzip /tmp/vault.zip -d /vault && \
+    rm -f /tmp/vault.zip && \
+    chmod +x /vault
+
+# definea variavel de ambiente PATH que o vault ira utilizar.
+ENV PATH="PATH=$PATH:$PWD/vault"
+
+# copia o arquivo de configuração do vault
+COPY ./config/vault-config.json /vault/config/vault-config.json
+
+# copia as o certificados para comunicação Https
+COPY ./fullchain.pem /vault/keys/public.pem
+COPY ./privkey.pem /vault/keys/private.pem
+
+# libera a port 8200
+EXPOSE 8200
+
+# executa o vault
+ENTRYPOINT ["vault"]
+```
+Agora iremos criar uma nova pasta chamada ``config``:
+```bash
+mkdir config && config
+```
+Criamos um arquivo com o nome ``vault-config.json``, por padrão o vault ira buscar o arquivo com esse novo para iniciar em modo ``server``.
+
+Nosso arquivo ficará assim:
+
+```json
+{
+  "backend": {
+    "consul": {
+      "address": "consul:8500",
+      "path": "vault/"
+    }
+  },
+  "listener": {
+    "tcp": {
+      "address": "0.0.0.0:8200",
+      "tls_disable": 1,
+      "tls_cert_file": "/vault/keys/public.pem",
+      "tls_key_file": "/vault/keys/private.pem"
+    }
+  },
+  "ui": true
+}
+```
+**EXPLICAÇÃO**
 
 
+```json
+{
+"backend": {
+    "consul": {
+      "address": "consul:8500",
+      "path": "vault/"
+    }
+  },
+}
+```
+``"backend"``: Definimos o nosso servidor storage no qual será o ``"consul"`` com endereço ``consul:8500`` caminho ``vault/``.
 
+```json
+"address": "consul:8500",
+```
+neste trecho o caminho ``consul:8500`` pode gerar alguma duvida as pessoa nao habituadas com o docker, este endereço e o mesmo que eu definir uma network, exemplo ``network``: ``consul``=``127.0.0.1``, assim posso chamar a rede por consul, e todos os container que herdarem essa rede pode chama-la pelo nome e nao pelo seu ip.
 
+```json
+{
+"listener": {
+    "tcp": {
+      "address": "0.0.0.0:8200",
+      "tls_disable": 0,
+      "tls_cert_file": "/vault/keys/public.pem",
+      "tls_key_file": "/vault/keys/private.pem"
+    }
+  },
+}
+```
+``"listener"`` Configura como o Vault atende as solicitações de API, ou seja, fica ouvindo as requisições na porta ``8200``, apos isso é definido as configurações https, é extremamente recomendado em produção, ser implementado com https, nao preciso dizer o motivo certo?
 
+``"tls_disable": 0`` define a obrigatoriedade de fornecer o certificado e a privatekey do certificado.
 
+``"tls_cert_file"`` define o caminho do certificado dentro do container e nao dentro da sua maquina.
+
+``"tls_key_file"`` define o caminho da chave privada dentro do container e nao dentro da sua maquina.
+
+```json
+{
+  "ui": true
+}
+```
+``"ui"`` habilita interação com a ui, caso nao veja necessidade, informe como ``false``.
+
+**IMPORTANTE**
+
+caso deseje mudar o nome, nao esqueça de mudar esse arquivo no ``Dockerfile`` ficando assim:
+
+```dockerfile
+# copia o arquivo de configuração do vault
+COPY ./config/[NOME-DO-SEU-ARQUIVO].json /vault/config/vault-config.json
+```
+perceba que o ``/vault/config/vault-config.json`` continua inalterado, isso porque o vault ira buscar o arquivo padrão de configuração com o nome ``vault-config.json``.
+
+### Consul
+
+Acesse a pasta Consul e crie um arquivo chamado `Dockerfile` dentro dele cole as seguintes configurações.
+
+```dockerfile
+# base image
+FROM alpine:3.7
+
+# define a versão do consul
+ENV CONSUL_VERSION 1.7.4
+
+# cria um novo repositório
+RUN mkdir /consul
+
+# faz download da dependência
+RUN apk --no-cache add \
+      bash \
+      ca-certificates \
+      wget
+
+# az download da imagem do consul
+RUN wget --quiet --output-document=/tmp/consul.zip https://releases.hashicorp.com/consul/${CONSUL_VERSION}/consul_${CONSUL_VERSION}_linux_amd64.zip && \
+    unzip /tmp/consul.zip -d /consul && \
+    rm -f /tmp/consul.zip && \
+    chmod +x /consul/consul
+
+# definea variavel de ambiente PATH que o consul ira utilizar
+ENV PATH="PATH=$PATH:$PWD/consul"
+
+# copia o arquivo de configuração do consul
+COPY ./config/consul-config.json /consul/config/config.json
+
+# libera as portas
+EXPOSE 8300 8400 8500 8600
+
+# executa o consul
+ENTRYPOINT ["consul"]
+
+```
+
+Agora iremos criar nosso arquivo de configuração, digite no console:
+
+```bash
+mkdir config && cd config
+```
+Dentro dessa pasta criamos um arquivo chamado ``consul-config.json`` com as seguintes configurações.
+
+```json
+{
+    "datacenter": "localhost",
+    "data_dir": "/consul/data",
+    "log_level": "DEBUG",
+    "server": true,
+    "ui": true,
+    "ports": {
+      "dns": 53
+    }
+  }
+```
