@@ -118,7 +118,12 @@ Development mode should NOT be used in production installations!
 ```
 Depois desse passo, ou seja, logo no final do console voce vera dois campos, o primeiro chamado **Unseal Key**, essa chave é usada para desbloquear o vault, nao é importante por enquanto, visto que estamos em ambiente de desenvolvimento. O outro campo é **Root Token** é esta chave que estamos procurando, copie ela com o **s.** e coloque na UI e depois clique em **Sign In**.
 
+Vá ate o menu ``Secrets`` -> ``Enable a Secrets Engine`` -> ``kv``  -> ``Path``: ``teste`` -> ``Version``: ``1`` -> ``clicar em method opinion``
+
+alterar os campos: ``Default Lease TTL`` e ``Max Lease TTL`` para ``7 days``.
+
 ### Criando, Lendo e Atualizando Chaves
+<a name="criando"></a>s
 
 Neste passo vou usar a linguagem ``JavaScript``, mas voce pode usar qualquer linguagem que se sentir confortável, veja todas as libs neste [link](https://www.vaultproject.io/api-docs/libraries).
 
@@ -167,7 +172,7 @@ const options = {
   token: process.env.TOKEN_VAULT || "s.XXXXXXXXXXXXXXXXXXX",
 };
 ```
-Esse token é o mesmo informado para fazer login la no passo [Step 4 - login.](#login).
+Esse token é o mesmo informado para fazer login la no passo [Step 4 - login.](#step-4).
 
 Após definirmos esses dados vamos iniciar uma instancia da comunicação:
 ```javascript
@@ -176,19 +181,19 @@ const vault = require("node-vault")(options);
 
 ``4 - Criando uma nova chave``
 ```javascript
-vault.write("secret/api", { value: "xxxxx-xxxxxx-xxxxx" });
+vault.write("teste/api", { value: "xxxxx-xxxxxx-xxxxx" });
 ```
 ``5 - Lendo a nova chave que foi criada``
 ```javascript
-vault.read("secret/api");
+vault.read("teste/api");
 ```
 ``6 - Atualizando a nova chave que foi criada``
 ```javascript
-vault.write("secret/api", { value: "yyyyy-yyyyyy-yyyyy" });
+vault.write("teste/api", { value: "yyyyy-yyyyyy-yyyyy" });
 ```
 ``7 - deletando a nova chave que foi criada``
 ```javascript
-vault.delete('secret/api'))
+vault.delete('teste/api'))
 ```
 
 Com isso você já consegue criar uma estrutura para manipulacao das suas chaves com segurança.
@@ -232,4 +237,221 @@ identity_policies    []
 policies             ["root"]
 ```
 #### Permissões
+
+Para criar uma permissão precisamos de alguns dados:
+
+``Nome da Politica de Acesso``: users
+
+``Politica de acesso``: 
+```
+path "teste/api/*" {
+  capabilities = ["read"]
+}
+```
+Nosso resultado final será esse, onde o intuito e posteriormente criar um usuário que possa apenas ler as chaves, ele nao possui privilegio para alterar ou escrever no **PATH**.
+
+```bash
+vault policy write users -<<EOF
+
+path "teste/api/*" {
+  capabilities = ["read"]
+}
+
+EOF
+```
+apos criar a politica de acesso voce recebera uma mensagem parecido com isso:
+
+```
+Success! Uploaded policy: users
+```
+
+Se voce deseja listar todas as politicas de acesso pode digitar o comando:
+
+```
+vault policy list
+```
+Sera mostrado para voce todas as politicas disponíveis para uso.
+```bash
+# vault policy list
+
+default
+users
+root
+```
+``default``: Todas os usuários posteriores ao root recebem essa politica, pois ele restringe os acessos que o root possui.
+
+``root``: permissões que somente o root pode ter.
+
+``users``: permissões que criamos, onde o usuário tem apenas permissão de leitura do path: ``secret/api/*``, caso seja o sistema adicione novos path, este usuário nao tela acesso.
+
+Como podemos ver as politicas de acessos deixam o gerenciamento mais dinâmicos, pois podemos criar politicas para um grupo de usuários, e quando quisermos mudar esse grupo, mudamos apenas a politica fazendo com que todos os usuário desse grupo herdem as novas configurações, sem precisar mudar usuário a usuário.
+
+#### Criar um novo usuário
+
+Agora chegou a hora de criarmos um usuário definindo sua politica de acesso, caso voce nao defina politica de acesso ele ira herdar apenas a politica ``Default``.
+
+Criar um novo usuario é simples:
+
+```bash
+vault token create -policy=users
+```
+
+``vault token create``: comando para criar uum novo usuário.
+
+``-policy=users`` atribui a politica de acesso ``users`` ao novo usuário.
+
+Se tudo ocorrer bem, ira ver esse retorno em seu console.
+
+```bash
+/ # vault token create -policy=users
+Key                  Value
+---                  -----
+token                s.yyyyyyyyyyyyyyyyyyyyyy
+token_accessor       yyyyyyyyyyyyyyyyyyyyyyyy
+token_duration       768h
+token_renewable      true
+token_policies       ["default" "users"]
+identity_policies    []
+policies             ["default" "users"]
+```
+Copie esse token, vamos utilizar para testar a nossa politica em funcionamento.
+
+digite ``exit`` no console para sair do container.
+```
+exit
+```
+
+#### Voltando ao código.
+
+Vamos voltar ao nosso código da etapa [Criando, lendo e atualizando chaves](#criando), e fazer algumas alteracoes, primeiro vamos criar uma nova instancia, separando ``VaultRoot`` e ``VaultClient``, onde o ``Client`` é o token que recebeu nossa politica de acesso da etapa anterior.
+
+altere seu código e deixe assim:
+```javascript
+var options = {
+  apiVersion: "v1",
+  endpoint: process.env.ENDPOINT || "http://127.0.0.1:8200",
+  token: process.env.TOKEN_VAULT || "s.TOKEN-ROOT",
+};
+
+var vaultRoot = require("node-vault")(options);
+
+options.token = 's.TOKEN-CRIADO-ANTERIORMENTE';
+
+var vaultClient = require("node-vault")(options);
+
+vaultRoot
+  .write("teste/api", { value: "xxxxx-xxxxxx-xxxxx" })
+  .then(async () => {
+    const result = await vaultClient.read("teste/api");
+    console.log(result)
+  })
+  .then(() => vaultClient.delete("teste/api"))
+  .catch(console.error);
+
+
+```
+
+**EXPLICAÇÃO:**
+
+Definimos as configurações de comunicação do usuário **ROOT**.
+```javascript
+var options = {
+  apiVersion: "v1",
+  endpoint: process.env.ENDPOINT || "http://127.0.0.1:8200",
+  token: process.env.TOKEN_VAULT || "s.TOKEN-ROOT",
+};
+
+var vaultRoot = require("node-vault")(options);
+```
+
+Definimos as configurações do **Client**
+```javascript
+options.token = 's.TOKEN-CRIADO-ANTERIORMENTE';
+
+var vaultClient = require("node-vault")(options);
+```
+
+Com o **vaultRoot** criamos um novo **PATH**, fazemos isso porque o **vaultClient** nao possui permissao para criacao de path, conforme foi definido na sua politica de acesso, depois fazemos a leitura com a linha:
+```javascript
+vaultClient.read("teste/api")
+```
+E posteriormente tentamos deletar, inseri esse comando, pois ele ira gerar um erro de permissão negada.
+```javascript
+vaultRoot
+  .write("teste/api", { value: "xxxxx-xxxxxx-xxxxx" })
+  .then(async () => {
+    const result = await vaultClient.read("teste/api");
+    console.log(result)
+  })
+  .then(() => vaultClient.delete("teste/api"))
+  .catch(console.error);
+
+```
+E executamos o nosso script:
+
+```
+node [Caminho do arquivo com extensão]
+```
+No meu caso ficou assim:
+```bash
+node ./config/init.js
+```
+
+Ao executar o script receberemos a seguinte informação:
+
+```bash
+# node ./config/init.js
+
+{
+  request_id: '9c9e92dd-9dc3-b329-8f68-6f03433e577c',
+  lease_id: '',
+  renewable: false,
+  lease_duration: 604800,
+  data: { value: 'xxxxx-xxxxxx-xxxxx' },
+  wrap_info: null,
+  warnings: null,
+  auth: null
+}
+ApiResponseError: 1 error occurred:
+        * permission denied
+
+  response: { statusCode: 403, body: { errors: [Array] } }
+```
+
+Essa mensagem mostra que ele conseguiu criar a chave, mas nao conseguiu deletar, mas se voce alterar o codigo para:
+
+```javascript
+vaultRoot
+  .write("teste/api", { value: "xxxxx-xxxxxx-xxxxx" })
+  .then(async () => {
+    const result = await vaultClient.read("teste/api");
+    console.log(result)
+  })
+  .then(() => vaultRoot.delete("teste/api"))
+  .catch(console.error);
+```
+
+o console ira lhe retornar a mensagem:
+
+```javascript
+{
+  request_id: 'f507e597-171f-2345-f6bf-7a0dc1e89492',
+  lease_id: '',
+  renewable: false,
+  lease_duration: 604800,
+  data: { value: 'xxxxx-xxxxxx-xxxxx' },
+  wrap_info: null,
+  warnings: null,
+  auth: null
+}
+```
+Mas agora sem o erro, pois quem esta deletando a chave é o usuario **ROOT** e nao o usuário **CLIENT** que possui politica de acesso.
+
+
+## DEPLOY 
+
+
+
+
+
 

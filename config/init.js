@@ -1,26 +1,25 @@
 var options = {
   apiVersion: "v1",
-  endpoint: process.env.ENDPOINT || "http://127.0.0.1:8200",
-  token: process.env.TOKEN_VAULT || "s.C9W0NBx8qDvBsmfTHv7e8DtL",
+  endpoint: "http://127.0.0.1:8200",
+  token: "s.xxxxxxxxxxxxxxxx",
 };
 
-var vault = require("node-vault")(options);
+var vaultRoot = require("node-vault")(options);
 
-// // init vault server
-// vault.init({ secret_shares: 1, secret_threshold: 1 })
-//   .then((result) => {
-//     var keys = result.keys;
-//     // set token for all following requests
-//     vault.token = result.root_token;
-//     // unseal vault server
-//     return vault.unseal({ secret_shares: 1, key: keys[0] })
-//   })
-//   .catch(console.error);
+options.token = 's.yyyyyyyyyyyyyyy';
 
-vault
-  .write("secrects/api", { value: "xxxxx-xxxxxx-xxxxx" })
+var vaultClient = require("node-vault")(options);
+
+vaultRoot
+  .write("teste/api", { value: "xxxxx-xxxxxx-xxxxx" })
   .then(async () => {
-    const a = await vault.read("secrects/api");
-    console.log(a);
+    const result = await vaultClient.read("teste/api");
+    console.log(result);
   })
-  .catch(console.error);    
+  .then(() => vaultRoot.delete("teste/api"))
+  .catch(console.error);
+
+
+
+
+

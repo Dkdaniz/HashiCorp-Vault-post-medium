@@ -2,5 +2,6 @@ docker/vault/data/
 docker/vault/logs/
 docker/vault/policies/
 docker/consul/data/
+node_modules
 .DS_Store
 
