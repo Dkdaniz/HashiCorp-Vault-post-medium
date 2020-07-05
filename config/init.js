@@ -1,7 +1,7 @@
 var options = {
-  apiVersion: "v1", 
-  endpoint: process.env.ENDPOINT || "http://127.0.0.1:8200", 
-  token: process.env.TOKEN_VAULT,
+  apiVersion: "v1",
+  endpoint: process.env.ENDPOINT || "http://127.0.0.1:8200",
+  token: process.env.TOKEN_VAULT || "s.C9W0NBx8qDvBsmfTHv7e8DtL",
 };
 
 var vault = require("node-vault")(options);
@@ -17,7 +17,10 @@ var vault = require("node-vault")(options);
 //   })
 //   .catch(console.error);
 
-vault.write("exchenges/binance", { api: "outro" }).then(async () => {
-  const a = await vault.read("exchenges/binance")
-  console.log(a);
-}).catch(console.error);
+vault
+  .write("secrects/api", { value: "xxxxx-xxxxxx-xxxxx" })
+  .then(async () => {
+    const a = await vault.read("secrects/api");
+    console.log(a);
+  })
+  .catch(console.error);    
