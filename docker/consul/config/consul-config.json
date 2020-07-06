@@ -4,12 +4,8 @@
   "log_level": "DEBUG",
   "server": true,
   "ui": true,
-  "addresses": {
-    "https": "0.0.0.0"
-  },
   "ports": {
-    "dns": 53,
-    "https": 8501
+    "dns": 53
   },
   "key_file": "/consul/keys/private.pem",
   "cert_file": "/consul/keys/public.pem"
