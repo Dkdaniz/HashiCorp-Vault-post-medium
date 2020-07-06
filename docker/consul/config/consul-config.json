@@ -11,6 +11,5 @@
     "https": 8501
   },
   "key_file": "/consul/keys/private.pem",
-  "cert_file": "/consul/keys/public.pem",
-  "ca_file": "/consul/keys/ca.pem"
+  "cert_file": "/consul/keys/public.pem"
 }

@@ -647,3 +647,7 @@ Dentro dessa pasta criamos um arquivo chamado ``consul-config.json`` com as segu
     }
   }
 ```
+
+
+1 + 3 + ... + (2n -1) = (n+1) 
+
