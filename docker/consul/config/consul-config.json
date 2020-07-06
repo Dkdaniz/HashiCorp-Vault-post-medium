@@ -6,7 +6,5 @@
   "ui": true,
   "ports": {
     "dns": 53
-  },
-  "key_file": "/consul/keys/private.pem",
-  "cert_file": "/consul/keys/public.pem"
+  }
 }
