@@ -8,6 +8,7 @@
     "https": "0.0.0.0"
   },
   "ports": {
+    "dns": 53,
     "https": 8501
   },
   "key_file": "/consul/keys/private.pem",
