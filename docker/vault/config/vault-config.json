@@ -2,7 +2,8 @@
   "backend": {
     "consul": {
       "address": "consul:8501",
-      "path": "vault/"
+      "path": "vault/",
+      "scheme": "https"
     }
   },
   "listener": {
