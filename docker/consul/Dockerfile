@@ -29,7 +29,7 @@ COPY ./fullchain.pem /consul/keys/public.pem
 COPY ./privkey.pem /consul/keys/private.pem
 
 # expose ports
-EXPOSE 8300 8400 8501 8600
+EXPOSE 8300 8400 8500 8501 8600
 
 # run consul
 ENTRYPOINT ["consul"]
