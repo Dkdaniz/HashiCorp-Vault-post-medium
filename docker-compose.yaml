@@ -6,7 +6,7 @@ services:
       context: ./docker/consul
       dockerfile: Dockerfile
     ports:
-      - 8501:8501
+      - 8500:8500
     command: agent -server -bind 0.0.0.0 -client 0.0.0.0 -bootstrap-expect 1 -config-file=/consul/config/config.json
     volumes:
       - ./docker/consul/config/consul-config.json:/consul/config/config.json
