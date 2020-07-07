@@ -637,17 +637,12 @@ Dentro dessa pasta criamos um arquivo chamado ``consul-config.json`` com as segu
 
 ```json
 {
-    "datacenter": "localhost",
-    "data_dir": "/consul/data",
-    "log_level": "DEBUG",
-    "server": true,
-    "ui": true,
-    "ports": {
-      "dns": 53
-    }
+  "datacenter": "localhost",
+  "data_dir": "/consul/data",
+  "log_level": "DEBUG",
+  "server": true,
+  "ports": {
+    "dns": 53
   }
+}
 ```
-
-
-1 + 3 + ... + (2n -1) = (n+1) 
-

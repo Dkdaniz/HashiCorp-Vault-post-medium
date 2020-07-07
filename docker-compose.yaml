@@ -11,6 +11,7 @@ services:
     volumes:
       - ./docker/consul/config/consul-config.json:/consul/config/config.json
       - ./docker/consul/data:/consul/data
+    restart: always
       
   consul-worker:
     build:
@@ -21,6 +22,7 @@ services:
       - ./docker/consul/config/consul-config.json:/consul/config/config.json
     depends_on:
       - consul
+    restart: always
 
   vault:
     build:
@@ -40,3 +42,4 @@ services:
       - IPC_LOCK
     depends_on:
       - consul
+    restart: always
