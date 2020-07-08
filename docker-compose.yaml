@@ -13,8 +13,8 @@ services:
       - ./docker/vault/data:/vault/data
       - ./docker/vault/logs:/vault/logs
     environment:
-      - VAULT_ADDR=http://127.0.0.1:8200
-    command: server -config=/vault/config/vault-config.json
+      - VAULT_ADDR=https://dpoansdpoasodp.financialhub.dev:8200
+    command:  
     cap_add:
       - IPC_LOCK
     depends_on:
