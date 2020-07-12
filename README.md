@@ -17,7 +17,7 @@ Nesse tutorial vamos usar o modelo de contêiner em Docker, pois creio que para 
 ### Step 1 -  Instale o Docker:
 
 ```
-https://docs.docker.com/engine/instal
+https://docs.docker.com/engine/install
 ```
 
 ### Step 2 - Configurar o Ambiente de Desenvolvimento
@@ -576,4 +576,61 @@ Dentro dessa pasta criamos um arquivo chamado ``consul-config.json`` com as segu
   }
 }
 ```
+
+### **Deploy**
+
+Antes de tudo precisamos gerar nosso certificado, vamos usar o ``Certbot``:
+```bash
+sudo apt-get update
+sudo apt-get install software-properties-common
+sudo add-apt-repository universe
+sudo add-apt-repository ppa:certbot/certbot
+sudo apt-get update
+sudo apt-get install certbot
+```
+E depois de tudo instalado podemos gerar nosso certificado seguindo os passos da própria ferramenta. Vale lembrar que para voce gerar um certificado para usar o ``HTTPS`` devera primeiro apontar su domínio para o DNS do servidor ou host.
+
+```bash
+sudo certbot certonly --standalone
+```
+
+envie seus dados para o servidor, no meu caso ficou assim
+```
+git clone https://github.com/Dkdaniz/HashiCorp-Vault-post-medium
+```
+
+Agora precisamos acessar a pasta do seu dominio que contem o seu certificado digital.
+```bash
+cd /etc/letsencrypt/live/[SEU DOMINIO]/
+```
+``OBSERVACAO``: Esse procedimento precisa de acesso de admin a pasta `/etc/letsencrypt/live/`
+
+Copie os arquivos os arquivos ``fullchain.pem`` e ``privkey.pem``
+
+```bash
+cp ./fullchain.pem /home/[YOUR-USER]/[NOME-DO-SEU-PROJETO]/docker/vault
+cp ./privkey.pem /home/[YOUR-USER]/[NOME-DO-SEU-PROJETO]/docker/vault
+```
+```bash
+#No meu caso ficara assim
+cp ./fullchain.pem /home/dkdaniz/HashiCorp-Vault-post-medium/docker/vault
+cp ./privkey.pem /home/dkdaniz/HashiCorp-Vault-post-medium/docker/vault
+```
+Voltamos a pasta do nosso projeto e executamos o docker-compose
+```bash
+cd /home/[YOUR-USER]/[NOME-DO-SEU-PROJETO]
+```
+Executamos o ``docker-compose``:
+```bash
+docker-compose up -d --build
+```
+
+
+
+
+
+
+
+
+
 
