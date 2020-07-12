@@ -579,6 +579,14 @@ Dentro dessa pasta criamos um arquivo chamado ``consul-config.json`` com as segu
 
 ### **Deploy**
 
+#### Step 1 -  Instale o Docker e docker-compose:
+
+```
+https://docs.docker.com/engine/install
+https://docs.docker.com/compose/install
+```
+#### Step 2 -  Instale o certbot:
+
 Antes de tudo precisamos gerar nosso certificado, vamos usar o ``Certbot``:
 ```bash
 sudo apt-get update
@@ -625,12 +633,27 @@ Executamos o ``docker-compose``:
 docker-compose up -d --build
 ```
 
+va no navegador e verifique se aparece a tela inicial do vault acesse:
+```
+https://YOUR-HOST.com:8200
+```
+voce vera o Vault em estado ``sealed``, ou seja, nessa etapa precisamos informar quantas chaves sao necessarias para realizar o desbloqueio do vault, nesse exemplo irei utilizar 5 keys.
 
+<img src="./assets/ui-sealed.jpeg" alt="alt text" width="800"/>
 
+Logo apos definir que pretendo usar cinco chaves ele, ira ficar disponivel download json contendo as suas chaves, faca o download clicando em ``download keys``e depois inicie o processo de ``Unseal``.
 
+Ele ira mostrar um aviso para voce: 
 
+```
+Por favor, distribuir com segurança as chaves abaixo. Quando o cofre for selado de novo, reiniciado ou parado, deverá fornecer pelo menos 5 destas chaves para o voltar a deslindar. O cofre não armazena a chave-mestra. Sem pelo menos 5 chaves, o seu Cofre ficará permanentemente selado.
+```
+<img src="./assets/ui-key-sealed.jpeg" alt="alt text" width="400"/>
 
+clicando em ``Continue Unseal`` a UI ira lhe mostrar um tela solicitando as chave:
 
+<img src="./assets/ui-unseal.jpeg" alt="alt text" width="800"/>
 
+Informe as keys e apartir desse momento voce devera inserir sua chave de root ou qualquer outra que voce tenha criado.
 
-
+<img src="./assets/ui.jpeg" alt="alt text" width="800"/>
