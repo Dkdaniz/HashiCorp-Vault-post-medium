@@ -1,25 +1,6 @@
 version: '3.6'
 
 services:
-  vault:
-    build:
-      context: ./docker/vault
-      dockerfile: Dockerfile
-    ports:
-      - 8200:8200
-    volumes:
-      - ./docker/vault/config:/vault/config
-      - ./docker/vault/policies:/vault/policies
-      - ./docker/vault/data:/vault/data
-      - ./docker/vault/logs:/vault/logs
-    environment:
-      - VAULT_ADDR=127.0.0.1:8200
-    command: server -config=/vault/config/vault-config.json
-    cap_add:
-      - IPC_LOCK
-    depends_on:
-      - consul
-    restart: always
   consul:
     build:
       context: ./docker/consul
@@ -31,6 +12,7 @@ services:
       - ./docker/consul/config/consul-config.json:/consul/config/config.json
       - ./docker/consul/data:/consul/data
     restart: always
+
   consul-worker:
     build:
       context: ./docker/consul
@@ -38,6 +20,26 @@ services:
     command: agent -server -join consul -config-file=/consul/config/config.json
     volumes:
       - ./docker/consul/config/consul-config.json:/consul/config/config.json
+    depends_on:
+      - consul
+    restart: always
+    
+  vault:
+    build:
+      context: ./docker/vault
+      dockerfile: Dockerfile
+    ports:
+      - 8200:8200
+    volumes:
+      - ./docker/vault/config/vault-config.json:/vault/config/vault-config.json
+      - ./docker/vault/keys/fullchain.pem:/vault/keys/public.pem
+      - ./docker/vault/keys/privkey.pem:/vault/keys/private.pem
+      - ./docker/vault/storage:/vault/storage
+    environment:
+      - VAULT_ADDR=127.0.0.1:8200
+    command: server -config=/vault/config/vault-config.json
+    cap_add:
+      - IPC_LOCK
     depends_on:
       - consul
     restart: always

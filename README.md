@@ -398,39 +398,34 @@ neste arquivo voce ira colar as seguintes configurações:
 # base image
 FROM alpine:3.7
 
-# define a versão do vault
-ENV VAULT_VERSION 1.2.3
+# set vault version
+ENV VAULT_VERSION 1.7.0
 
-# cria um novo repositório
+# create a new directory
 RUN mkdir /vault
+RUN mkdir /vault/config
 RUN mkdir /vault/keys
+RUN mkdir /vault/storage
 
-# faz download da dependência
+# download dependencies
 RUN apk --no-cache add \
-      bash \
-      ca-certificates \
-      wget
+    bash \
+    ca-certificates \
+    wget
 
-# faz download da imagem do vault
+# download and set up vault
 RUN wget --quiet --output-document=/tmp/vault.zip https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_amd64.zip && \
     unzip /tmp/vault.zip -d /vault && \
     rm -f /tmp/vault.zip && \
     chmod +x /vault
 
-# definea variavel de ambiente PATH que o vault ira utilizar.
+# update PATH
 ENV PATH="PATH=$PATH:$PWD/vault"
 
-# copia o arquivo de configuração do vault
-COPY ./config/vault-config.json /vault/config/vault-config.json
+# expose port 8200
+EXPOSE 8200 8200
 
-# copia as o certificados para comunicação Https
-COPY ./fullchain.pem /vault/keys/public.pem
-COPY ./privkey.pem /vault/keys/private.pem
-
-# libera a port 8200
-EXPOSE 8200
-
-# executa o vault
+# run vault
 ENTRYPOINT ["vault"]
 ```
 Agora iremos criar uma nova pasta chamada ``config``:
@@ -443,6 +438,11 @@ Nosso arquivo ficará assim:
 
 ```json
 {
+  "storage":{
+    "file":{
+      "path": "vault/storage"
+    }
+  },
   "backend": {
     "consul": {
       "address": "consul:8500",
@@ -452,7 +452,7 @@ Nosso arquivo ficará assim:
   "listener": {
     "tcp": {
       "address": "0.0.0.0:8200",
-      "tls_disable": 1,
+      "tls_disable": 0,
       "tls_cert_file": "/vault/keys/public.pem",
       "tls_key_file": "/vault/keys/private.pem"
     }
@@ -462,6 +462,20 @@ Nosso arquivo ficará assim:
 ```
 **EXPLICAÇÃO**
 
+```json
+{
+"storage":{
+    "file":{
+      "path": "vault/storage"
+    }
+  },
+}
+```
+``"storage"``: Definimos a variavel que ira receber o arquivo de backup.
+
+``"file"``: Estamos informando que o arquivo sera armazenado localmente.
+
+``"path"``: Caminho onde será feito o arquivo de backup/
 
 ```json
 {

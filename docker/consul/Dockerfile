@@ -9,9 +9,9 @@ RUN mkdir /consul
 
 # download dependencies
 RUN apk --no-cache add \
-      bash \
-      ca-certificates \
-      wget
+    bash \
+    ca-certificates \
+    wget
 
 # download and set up consul
 RUN wget --quiet --output-document=/tmp/consul.zip https://releases.hashicorp.com/consul/${CONSUL_VERSION}/consul_${CONSUL_VERSION}_linux_amd64.zip && \
@@ -26,7 +26,7 @@ ENV PATH="PATH=$PATH:$PWD/consul"
 COPY ./config/consul-config.json /consul/config/config.json
 
 # expose ports
-EXPOSE 8300 8400 8500 8600
+EXPOSE 8300 8400 8500 8600 8501
 
 # run consul
 ENTRYPOINT ["consul"]
