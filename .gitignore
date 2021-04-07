@@ -8,3 +8,4 @@ node_modules
 storage
 data
 *.pem
+*.lock
